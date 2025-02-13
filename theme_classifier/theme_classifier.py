@@ -62,6 +62,10 @@ class ThemeClassifier():
         return themes
     
     def get_themes(self, dataset_path, save_path=None):
+        # Read save Output if Exists
+        if save_path is not None and os.path.exists(save_path):
+            df = pd.read_csv(save_path)
+            return df
 
         # load dataset
         df = load_subtitles_dataset(dataset_path)

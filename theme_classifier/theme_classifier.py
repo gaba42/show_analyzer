@@ -8,7 +8,7 @@ import os
 import sys
 import pathlib
 folder_path = pathlib.Path(__file__).parent.resolve()
-sys.path.append(os.path.join(folder_path),'../')
+sys.path.append(os.path.join(folder_path, '../'))
 from utils import load_subtitles_dataset
 nltk.download('punkt')
 nltk.download('punkt_tab')
@@ -21,7 +21,6 @@ class ThemeClassifier():
         self.theme_list = theme_list
         self.theme_classifier = self.load_model(self.device)
     
-
     def load_model(self, device):
         theme_classifier = pipeline(
             "zero-shot-classification",
@@ -79,3 +78,5 @@ class ThemeClassifier():
         # save output
         if save_path is not None:
             df.to_csv(save_path, index=False)
+        
+        return df

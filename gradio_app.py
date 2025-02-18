@@ -1,5 +1,6 @@
 import gradio as gr
 from theme_classifier import ThemeClassifier
+from character_network import NamedEntityRecognizer, CharacterNetworkGenerator
 
 
 def get_themes(theme_list_str, subtitles_path, save_path):
@@ -27,9 +28,20 @@ def get_themes(theme_list_str, subtitles_path, save_path):
 
     return output_chart
 
+def get_character_network(subtitles_path, ner_path):
+    ner = NamedEntityRecognizer()
+    ner_df = ner.get_ners(subtitles_path, ner_path)
+
+    character_network_generator = CharacterNetworkGenerator()
+    relationship_df = character_network_generator.generate_character_network(ner_df)
+    html = character_network_generator.draw_network_graph(relationship_df)
+
+    return html
+
 
 def main():
     with gr.Blocks() as iface:
+        # Theme Classificaiton section
         with gr.Row():
             with gr.Column():
                 gr.HTML("<h1>테마 분류기(Zero shot classifier</h1>")
@@ -42,6 +54,19 @@ def main():
                         save_path = gr.Textbox(label="저장 경로")
                         get_themes_button = gr.Button("테마 확인")
                         get_themes_button.click(get_themes, inputs=[theme_list, subtitles_path, save_path], outputs=[plot])
+        
+        # Character Network Section
+        with gr.Row():
+            with gr.Column():
+                gr.HTML("<h1>캐릭터 네트워크 (NERs and 그래프)</h1>")
+                with gr.Row():
+                    with gr.Column():
+                        network_html = gr.HTML()
+                    with gr.Column():
+                        subtitles_path = gr.Textbox(label="자막 경로")
+                        ner_path = gr.Textbox(label="NERs 저장 경로")
+                        get_network_graph_button = gr.Button("Get Character Network Graph")
+                        get_network_graph_button.click(get_character_network, inputs=[subtitles_path, ner_path], outputs=[network_html])
 
     iface.launch(share=True)
 

@@ -9,7 +9,8 @@ class CustomTrainer(Trainer):
 
         # Forward Pass
         outputs = model(**inputs)
-        logits = outputs.logits
+        logits = outputs.get("logits")
+        logits = logits.float()
 
         # Compute custom loss
         loss_fct = nn.CrossEntropyLoss(weight=torch.tensor(self.class_weights).to(device=self.device))

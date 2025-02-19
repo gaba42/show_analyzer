@@ -9,6 +9,7 @@ from transformers import (AutoTokenizer,
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from datasets import Dataset
+import gc
 from .cleaner import Cleaner
 from .training_utils import get_class_weights, compute_metrics
 from .custom_trainer import CustomTrainer
@@ -84,8 +85,19 @@ class JutsuClassifier():
             tokenizer=self.tokenizer,
             data_collator=data_collator,
             compute_metrics=compute_metrics,
-
         )
+
+        trainer.set_device(self.device)
+        trainer.set_class_weights(class_weights)
+
+        trainer.train()
+
+        # Flush Memory
+        del trainer, model
+        gc.collect()
+
+        if self.device == 'cuda':
+            torch.cuda.empty_cache()
 
 
             

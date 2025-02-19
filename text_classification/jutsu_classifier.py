@@ -1,11 +1,17 @@
 import pandas as pd
 import torch
 import huggingface_hub
-from transformers import AutoTokenizer
+from transformers import (AutoTokenizer,
+                          AutoModelForSequenceClassification,
+                          DataCollatorWithPadding,
+                          TrainingArguments,
+                          )
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from datasets import Dataset
 from .cleaner import Cleaner
+from .training_utils import get_class_weights, compute_metrics
+from .custom_trainer import CustomTrainer
 
 
 class JutsuClassifier():
@@ -41,6 +47,48 @@ class JutsuClassifier():
                 raise ValueError("Data path is required to train the model, since the model path does not exist in huggingface hub")
             
             train_data, test_data = self.load_data(self.data_path)
+            train_data_df = train_data.to_pandas()
+            test_data_df = test_data.to_pandas()
+
+            all_data = pd.concat([train_data_df, test_data_df]).reset_index(drop=True)
+            class_weights = get_class_weights(all_data)
+
+            self.train_model(train_data, test_data, class_weights)
+        
+        self.model = self.load_model(self.model_path)
+    
+    def train_model(self, train_data, test_data, class_weights):
+        model = AutoModelForSequenceClassification.from_pretrained(self.model_name,
+                                                                   num_label=self.num_labels,
+                                                                   id2label=self.label_dict,
+                                                                   )
+        data_collator = DataCollatorWithPadding(tokenizer=self.tokenizer)
+
+        training_args = TrainingArguments(
+            output_dir = self.model_path,
+            learning_Rate=2e-4,
+            per_device_train_batch_size=8,
+            per_device_test_batch_size=8,
+            num_train_epochs=5,
+            weight_decay=0.01,
+            evaluation_strategy="epoch",
+            logging_strategy="epoch",
+            push_to_hub=True,
+        )
+
+        trainer = CustomTrainer(
+            model=model,
+            args=training_args,
+            training_dataset=train_data,
+            eval_dataset=test_data,
+            tokenizer=self.tokenizer,
+            data_collator=data_collator,
+            compute_metrics=compute_metrics,
+
+        )
+
+
+            
 
     def simplify_jutsu(jutsu):
         if "Kenjutsu" in jutsu:
@@ -72,6 +120,7 @@ class JutsuClassifier():
         le.fit(df[self.label_column_name].tolist())
 
         label_dict = {index:label_name for index, label_name in enumerate(le.__dict__['classes_'].tolist())}
+        self.label_dict = label_dict
         df['label'] = le.transform(df[self.label_column_name].tolist())
 
 

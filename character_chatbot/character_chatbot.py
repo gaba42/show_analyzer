@@ -145,6 +145,7 @@ class CharacterChatBot():
             warmup_ratio=warmup_ratio,
             group_by_length=True,
             lr_scheduler_type=lr_scheduler_type,
+            dataset_text_field="prompt",
             report_to="none"
         )
 
@@ -154,8 +155,7 @@ class CharacterChatBot():
             model=model,
             train_dataset=dataset,
             peft_config=peft_config,
-            dataset_text_field="prompt",
-            max_seq_len=max_seq_len,
+            max_seq_lenth=max_seq_len,
             tokenizer=tokenizer,
             args=training_arguments,
         )

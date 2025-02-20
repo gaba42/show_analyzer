@@ -4,7 +4,7 @@ from transformers import Trainer
 
 
 class CustomTrainer(Trainer):
-    def compute_loss(self, model, inputs, return_outputs=False):
+    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
         labels = inputs.get("labels")
 
         # Forward Pass

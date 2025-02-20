@@ -131,11 +131,14 @@ class CharacterChatBot():
             task_type="CAUSAL_LM",
         )
 
+        max_seq_len = 512
+
         training_arguments = SFTConfig(
             output_dir=output_dir,
             per_device_train_batch_size=per_device_train_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
             optim=optim,
+            max_seq_length=max_seq_len,
             save_steps=save_steps,
             logging_steps=logging_steps,
             learning_rate=learning_rate,
@@ -149,13 +152,10 @@ class CharacterChatBot():
             report_to="none"
         )
 
-        max_seq_len = 512
-
         trainer = SFTTrainer(
             model=model,
             train_dataset=dataset,
             peft_config=peft_config,
-            max_seq_length=max_seq_len,
             tokenizer=tokenizer,
             args=training_arguments,
         )

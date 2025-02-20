@@ -3,7 +3,7 @@ import numpy as np
 import evaluate
 
 
-metric = evaluate.load('accuracy')
+metric = evaluate.load('accuracy', use_auth_token=None)
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
     predictions = np.argmax(logits, axis=-1)

@@ -30,7 +30,7 @@ class CharacterChatBot():
 
         self.model_path = model_path
         self.data_path = data_path
-        self,huggingface_token = huggingface_token
+        self.huggingface_token = huggingface_token
         self.base_model_path = "meta-llama/Llama-3.1-8B"
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 

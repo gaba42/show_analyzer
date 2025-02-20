@@ -5,6 +5,7 @@ from transformers import (AutoTokenizer,
                           AutoModelForSequenceClassification,
                           DataCollatorWithPadding,
                           TrainingArguments,
+                          pipeline,
                           )
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
@@ -58,6 +59,10 @@ class JutsuClassifier():
         
         self.model = self.load_model(self.model_path)
     
+    def load_model(self, model_path):
+        model = pipeline('text-classification', model=model_path, return_all_scores=True)
+        return model
+
     def train_model(self, train_data, test_data, class_weights):
         model = AutoModelForSequenceClassification.from_pretrained(self.model_name,
                                                                    num_label=self.num_labels,
@@ -69,7 +74,7 @@ class JutsuClassifier():
             output_dir = self.model_path,
             learning_Rate=2e-4,
             per_device_train_batch_size=8,
-            per_device_test_batch_size=8,
+            per_device_eval_batch_size=8,
             num_train_epochs=5,
             weight_decay=0.01,
             evaluation_strategy="epoch",
@@ -80,7 +85,7 @@ class JutsuClassifier():
         trainer = CustomTrainer(
             model=model,
             args=training_args,
-            training_dataset=train_data,
+            train_dataset=train_data,
             eval_dataset=test_data,
             tokenizer=self.tokenizer,
             data_collator=data_collator,
@@ -99,9 +104,6 @@ class JutsuClassifier():
         if self.device == 'cuda':
             torch.cuda.empty_cache()
 
-
-            
-
     def simplify_jutsu(jutsu):
         if "Kenjutsu" in jutsu:
             return "Kenjutsu"
@@ -119,8 +121,8 @@ class JutsuClassifier():
         df = pd.read_json(data_path, lines=True)
         df['jutsu_type_simplified'] = df['jutsu_type'].apply(self.simplify_jutsu)
         df['text'] = df['jutsu_name'] + ". " + df['jutsu_description']
-        df['jutsus'] = df['jutsu_type_simplified']
-        df = df[['text', 'jutsus']]
+        df[self.label_column_name] = df['jutsu_type_simplified']
+        df = df[['text', self.label_column_name]]
         df = df.dropna()
 
         # Clean TExt
@@ -154,7 +156,6 @@ class JutsuClassifier():
                                             batched=True)
         return tokenized_train, tokenized_test
 
-
     def load_tokenizer(self):
         if huggingface_hub.repo_exists(self.model_path):
             tokenizer = AutoTokenizer.from_pretrained(self.model_path)
@@ -163,3 +164,14 @@ class JutsuClassifier():
         
         return tokenizer
     
+    def postprocess(self, model_output):
+        output = []
+        for pred in model_output:
+            label = max(pred, key=lambda x: x['score'])['label']
+            output.append(label)
+        return output
+
+    def classify_jutsu(self, text):
+        model_output = self.model(text)
+        predictions = self.postprocess(model_output)
+        return predictions

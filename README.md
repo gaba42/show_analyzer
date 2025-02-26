@@ -7,7 +7,7 @@ A Python-based toolkit for analyzing television shows (or other scripted content
 - [Features](#features)
 - [Installation](#installation)
 
----
+
 
 ## Features
 
@@ -18,7 +18,7 @@ A Python-based toolkit for analyzing television shows (or other scripted content
 - **Word Frequency & Word Clouds**: Easily generate frequency distributions and word clouds to see the most frequent terms.  
 - **Topic Modeling (optional)**: Use algorithms such as Latent Dirichlet Allocation (LDA) to discover hidden themes in dialogue.
 
----
+
 
 ## Installation
 ```bash

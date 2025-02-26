@@ -1,6 +1,4 @@
 # show_analyzer
- 
-# show_analyzer
 
 A Python-based toolkit for analyzing television shows (or other scripted content) via NLP (Natural Language Processing). The project aims to extract insights such as word usage, character dialogue patterns, sentiment, and more from subtitle or script files.
 
